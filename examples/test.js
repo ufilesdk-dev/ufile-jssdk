@@ -239,7 +239,7 @@ $(document).ready(function() {
             // 限制文件类型
             // accept="image/png" or accept=".png" — 只接受 png 图片.
             // accept="image/png, image/jpeg" or accept=".png, .jpg, .jpeg" — PNG/JPEG 文件.
-            // accept="image/*" — 接受任何图片文件类型.
+            // accept="image/*" — 接受任何图片文件类型. 在Chrome55里面，会存在响应慢等情况，建议指明文件类型
             // accept=".doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" — 接受任何 MS Doc 文件类型.
             // batchUploader.setAttribute("accept", "image/gif,image/png"); - 只能传image/gif,image/png的类型
             document.getElementById('batchUploaderWrap').appendChild(batchUploader);
