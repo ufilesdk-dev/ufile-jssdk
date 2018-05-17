@@ -366,7 +366,7 @@ UCloudUFile.prototype.sliceUpload = function(options, success, error, progress) 
 
             var start = currentChunk * that.sliceSize;
             var end = start + that.sliceSize >= file.size ? file.size : start + that.sliceSize;
-            var currentFile = that.slice.call(file, start, end);
+            var currentFile = that.slice.call(file, start, end, file.type);
             currentFile.name = file.name;
 
             // 上传各分片
