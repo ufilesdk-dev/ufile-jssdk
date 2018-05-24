@@ -130,6 +130,7 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
         data += canonicalizedResource(bucket, key);
 
         return sign(data);
+    }
 
     this.getContentMd5(file, function(md5) {
 
