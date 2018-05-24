@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SDK-Examples-v2</title>
+
+    <link rel="stylesheet" type="text/css" href="./css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="./css/test.css">
+
+    <script type="text/javascript" src="./libs/spark-md5-3.0.0.min.js"></script>
+    <script type="text/javascript" src="./libs/crypto-js.js"></script>
+    <script type="text/javascript" src="./libs/ufile-token.js"></script>
+
+    <script type="text/javascript" src="./js/jquery.min.js"></script>
+    <script type="text/javascript" src="./js/bootstrap.min.js"></script>
+
+    <script type="text/javascript" src="./js/test.js"></script>
+
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center">UCloud UFile JavaScript SDK Examples V2</h1>
+
+            <div class="function-list">
+                <ul class="nav nav-tabs">
+                    <li role="presentation" class="active">
+                        <a href="#tab1" data-toggle="tab" aria-expanded="true">
+                            获取文件列表 / 查看文件信息 / 下载文件 / 删除文件 / 批量删除
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#tab2" data-toggle="tab" aria-expanded="false">
+                            普通上传
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#tab3" data-toggle="tab" aria-expanded="false">
+                            表单上传
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#tab4" data-toggle="tab" aria-expanded="false">
+                            分片上传
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#tab5" data-toggle="tab" aria-expanded="false">
+                            秒传文件
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#tab6" data-toggle="tab" aria-expanded="false">
+                            批量上传
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="tab-content">
+                <div id="tab1" class="tab-pane fade active in">
+                    <button id="getFileList" class="btn btn-default">获取列表</button>
+                    <button id="batchDelete" class="btn btn-default hide">
+                        批量删除
+                    </button>
+                    <hr />
+                    <div class="file-list hide" data-example-id="hoverable-table">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>选择</th>
+                                    <th>文件名</th>
+                                    <th>大小（字节）</th>
+                                    <th>MIME-Type</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="files-tbody">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="tab2" class="tab-pane fade">
+                    <div class="col-sm-4">
+                        <input type="text" name="" class="rename-uploadFile form-control" placeholder="若需重命名，请先填写">
+                    </div>
+                    <button id="uploadFile" class="btn btn-default">
+                        上传文件
+                    </button>
+                </div>
+                <div id="tab3" class="tab-pane fade">
+                    <div class="col-sm-4">
+                        <input type="text" name="" class="rename-formUpload form-control" placeholder="若需重命名，请先填写">
+                    </div>
+                    <button id="formUpload" class="btn btn-default">
+                        表单上传
+                    </button>
+                </div>
+                <div id="tab4" class="tab-pane fade">
+                    <div class="col-sm-4">
+                        <input type="text" name="" class="rename-sliceUpload form-control" placeholder="若需重命名，请先填写">
+                    </div>
+                    <button id="sliceUpload" class="btn btn-default">
+                        分片上传
+                    </button>
+                </div>
+                <div id="tab5" class="tab-pane fade">
+                    <button id="hitUpload" class="btn btn-default">
+                        秒传文件
+                    </button>
+                </div>
+                <div id="tab6" class="tab-pane fade">
+                    <div id="batchContainer">
+                        <button id="addFile" class="btn btn-default ">
+                            添加文件
+                        </button>
+                        <button id="batchUpload" class="btn btn-default">
+                            批量上传
+                        </button>
+                        <button id="clearUpload" class="btn btn-default">
+                            清除文件
+                        </button>
+                    </div>
+                    <div id="drop_zone">拖动文件到这里</div>
+                    <div id="batchList"></div>
+                </div>
+            </div>
+
+            <div id="batchUploaderWrap"></div>
+            <div id="uploaderWrap">
+                <input type="file" id="uploader" name="uploader" class="form-control hide" />
+            </div>
+        <div>
+            <textarea id="result" class="form-control" rows="10"></textarea>
+        </div>
+    </div>
+
+</body>
+</html>
