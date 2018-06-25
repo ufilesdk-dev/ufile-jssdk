@@ -9,6 +9,7 @@
 
     <script type="text/javascript" src="./libs/spark-md5-3.0.0.min.js"></script>
     <script type="text/javascript" src="./libs/crypto-js.js"></script>
+    <script type="text/javascript" src="./libs/base64.min.js"></script>
     <script type="text/javascript" src="./libs/ufile-token.js"></script>
 
     <script type="text/javascript" src="./js/jquery.min.js"></script>
@@ -53,11 +54,25 @@
                             批量上传
                         </a>
                     </li>
+                    <li role="presentation">
+                        <a href="#tab7" data-toggle="tab" aria-expanded="false">
+                            上传回调
+                        </a>
+                    </li>
                 </ul>
             </div>
 
             <div class="tab-content">
                 <div id="tab1" class="tab-pane fade active in">
+                    <div class="col-sm-2">
+                        <input type="text" name="" class="prefix-fileList form-control" placeholder="文件前缀">
+                    </div>
+                    <div class="col-sm-3">
+                        <input type="text" name="" class="marker-fileList form-control" placeholder="文件列表起始位置(填写文件名)">
+                    </div>
+                    <div class="col-sm-2">
+                        <input type="text" name="" class="limit-fileList form-control" placeholder="文件列表数目">
+                    </div>
                     <button id="getFileList" class="btn btn-default">获取列表</button>
                     <button id="batchDelete" class="btn btn-default hide">
                         批量删除
@@ -123,6 +138,25 @@
                     <div id="drop_zone">拖动文件到这里</div>
                     <div id="batchList"></div>
                 </div>
+                <div id="tab7" class="tab-pane fade">
+                    <div class="col-sm-12">
+<pre>
+//回调服务的地址使用json格式进行封装，格式如下
+{
+    "callbackUrl" : "http://test.ucloud.cn",   //指定回调服务的地址
+    "callbackBody" : "key1=value1&key2=value2" //传递给回调服务的参数
+}</pre>
+                    </div>
+                    <div class="col-sm-12" style="margin-bottom: 10px;">
+                        <textarea class="putPolicy-json form-control" rows="5" placeholder="上传策略json"></textarea>
+                    </div>
+                    <div class="col-sm-4">
+                        <input type="text" name="" class="rename-putPolicy form-control" placeholder="若需重命名，请先填写">
+                    </div>
+                    <button id="putPolicy" class="btn btn-default">
+                        上传回调
+                    </button>
+                </div>
             </div>
 
             <div id="batchUploaderWrap"></div>
@@ -130,6 +164,8 @@
                 <input type="file" id="uploader" name="uploader" class="form-control hide" />
             </div>
         <div>
+            <hr>
+            <div id="configInfo"></div>
             <textarea id="result" class="form-control" rows="10"></textarea>
         </div>
     </div>

@@ -45,14 +45,22 @@ class UCloud_Auth {
         $this->PrivateKey = $privateKey;
     }
 
-    public function Sign($data)
+    public function Sign($data, $put_policy)
     {
         $sign = base64_encode(hash_hmac('sha1', $data, $this->PrivateKey, true));
-        return "UCloud " . $this->PublicKey . ":" . $sign;
+        $singStr = "UCloud " . $this->PublicKey . ":" . $sign;
+
+        // 上传回调put_policy
+        if ($put_policy) {
+            $policystr = base64_encode(str_replace('"','\\"',json_encode($put_policy)));
+            $singStr = $singStr . ":" . $policystr;
+        }
+
+        return $singStr;
     }
 
     //@results: $token
-    public function SignRequest($method, $bucket, $key, $content_md5, $content_type, $date)
+    public function SignRequest($method, $bucket, $key, $content_md5, $content_type, $date, $put_policy)
     {
         $data = '';
         $data .= strtoupper($method) . "\n";
@@ -61,7 +69,7 @@ class UCloud_Auth {
         $data .= $date . "\n";
         $data .= CanonicalizedResource($bucket, $key);
         error_log($data, 3, "/tmp/php.log");
-        return $this->Sign($data);
+        return $this->Sign($data, $put_policy);
     }
 }
 
@@ -72,7 +80,9 @@ $content_md5=$_GET['content_md5'];
 $content_type=$_GET['content_type'];
 $date=$_GET['date'];
 
+$put_policy=$_GET['put_policy'];
+
 $auth=new UCloud_Auth($UCLOUD_PUBLIC_KEY, $UCLOUD_PRIVATE_KEY);
-printf("%s\n", $auth->SignRequest($method, $bucket, $key, $content_md5, $content_type, $date));
+printf("%s", $auth->SignRequest($method, $bucket, $key, $content_md5, $content_type, $date, $put_policy));
 
 ?>
