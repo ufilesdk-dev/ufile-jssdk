@@ -1,4 +1,4 @@
-function UCloudUFile(bucketName, bucketUrl, tokenPublicKey, tokenPrivateKey, prefix) {
+function UCloudUFile(bucketName, bucketUrl, tokenPublicKey, tokenPrivateKey, tokenServerUrl, prefix) {
 
     // 存储空间名称。既可以在这里配置，也可以在实例化时传参配置。
     // 例如 bucketName = "example-name"
@@ -14,9 +14,15 @@ function UCloudUFile(bucketName, bucketUrl, tokenPublicKey, tokenPrivateKey, pre
     // 令牌私钥。既可以在这里配置，也可以在实例化时传参配置。
     this.PRIVATE_KEY = tokenPrivateKey || '';
 
+    // 签名服务器地址
+    this.tokenServerUrl = tokenServerUrl || "";
+
     //令牌配置的前缀，无前缀填空字符串
     //例如 PREFIX = "example-prefix"
     this.PREFIX = prefix || '';
+
+    // 是否服务端签名
+    this.signatureServer = !!this.tokenServerUrl || false;
 
     this.createAjax = function(argument) {
         var xmlhttp = {};
@@ -77,8 +83,6 @@ UCloudUFile.prototype.getExpired = function(second) {
     return Date.parse(new Date()) / 1000 + (second || 600);
 }
 
-
-
 // 获取文件管理签名token
 UCloudUFile.prototype.getUFileToken = function(options, success, error) {
 
@@ -89,6 +93,7 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
 
     var keyName;
     var contentType = options.contentType || file.type || "";
+    var putPolicy = options.putPolicy || "";
 
     if (fileName) {
         keyName = fileName;
@@ -113,15 +118,24 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
         return "/" + bucket + "/" + decodeURIComponent(key);
     }
 
-    function sign(data) {
+    function sign(data, put_policy) {
         data = CryptoJS.enc.Utf8.parse(data);
         var hash = CryptoJS.HmacSHA1(data, privateKey);
         var signdata = hash.toString(CryptoJS.enc.Base64);
 
-        return "UCloud " + publicKey + ":" + signdata;
+        var signStr = "UCloud " + publicKey + ":" + signdata;
+
+        if (put_policy) {
+            var putPolicyStr = JSON.stringify(put_policy).replace(/\"/g, '\\"');
+            var signPolicyStr = Base64.encode(putPolicyStr);
+            signStr += ":" + signPolicyStr;
+        }
+
+        return signStr;
     }
 
-    function signRequest(method, bucket, key, content_md5, content_type, date) {
+    // SDK内部签名计算
+    function signRequest(method, bucket, key, content_md5, content_type, date, put_policy) {
         var data = '';
         data += method.toUpperCase() + "\n";
         data += content_md5 + "\n";
@@ -129,7 +143,33 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
         data += date + "\n";
         data += canonicalizedResource(bucket, key);
 
-        return sign(data);
+        return sign(data, put_policy);
+    }
+
+    // 服务端签名计算
+    function getSignatureToken(tokenServerUrl, method, bucket, key, content_md5, content_type, date, put_policy) {
+        var ajax = that.createAjax();
+        var url = tokenServerUrl + "?method=" + method +
+            "&bucket=" + bucket +
+            "&key=" + key +
+            "&content_md5=" + content_md5 +
+            "&content_type=" + content_type +
+            "&date=" + date +
+            "&put_policy=" + put_policy;
+        ajax.open("GET", url, true);
+
+        var onreadystatechange = function() {
+            if (ajax.readyState === 4) {
+                if (ajax.status === 200) {
+                    success(ajax.responseText.trim());
+                } else {
+                    error(ajax.responseText);
+                }
+            }
+        };
+
+        ajax.onreadystatechange = onreadystatechange;
+        ajax.send();
     }
 
     this.getContentMd5(file, function(md5) {
@@ -137,7 +177,11 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
         if (md5Required === false) {
             md5 = "";
         }
-        token = signRequest(method, that.bucketName, encodeURIComponent(keyName), md5, contentType, "")
+        if (that.signatureServer) {
+            token = getSignatureToken(that.tokenServerUrl, method, that.bucketName, encodeURIComponent(keyName), md5, contentType, "", putPolicy)
+        } else {
+            token = signRequest(method, that.bucketName, encodeURIComponent(keyName), md5, contentType, "", putPolicy)
+        }
 
 
         if (token) {
@@ -192,10 +236,14 @@ UCloudUFile.prototype.getContentMd5 = function(file, success) {
 }
 
 // 获取文件列表
-UCloudUFile.prototype.getFileList = function(success, error) {
+UCloudUFile.prototype.getFileList = function(options, success, error) {
 
     var that = this;
     var method = "GET";
+    var prefix = options.prefix || that.PREFIX;
+    var marker = options.marker || "";
+    var limit = options.limit || 20;
+
     var requestToken = {
         method: method
     };
@@ -204,9 +252,9 @@ UCloudUFile.prototype.getFileList = function(success, error) {
 
         var ajax = that.createAjax();
         var url = that.getBucketUrl() + "?list" +
-            "&prefix=" + that.PREFIX +
-            "&marker=" + "" +
-            "&limit=" + 20;
+            "&prefix=" + prefix +
+            "&marker=" + marker +
+            "&limit=" + limit;
         ajax.open(method, url, true);
         ajax.setRequestHeader("Authorization", token);
 
@@ -276,11 +324,13 @@ UCloudUFile.prototype.uploadFile = function(options, success, error, progress) {
     var file = options.file || {};
     var fileRename = options.fileRename;
     var fileName = this.addPrefix(this.getFileName(file, fileRename));
+    var putPolicy = options.putPolicy;
 
     var requestToken = {
         method: method,
         file: file,
-        fileName: fileName
+        fileName: fileName,
+        putPolicy: putPolicy
     };
 
     this.getUFileToken(requestToken, function(token) {
@@ -576,11 +626,13 @@ UCloudUFile.prototype.formUpload = function(options, success, error) {
     var file = options.file || {};
     var fileRename = options.fileRename;
     var fileName = this.addPrefix(this.getFileName(file, fileRename));
+    var putPolicy = options.putPolicy
 
     var requestToken = {
         method: method,
         file: file,
-        fileName: fileName
+        fileName: fileName,
+        putPolicy: putPolicy
     };
 
     this.getUFileToken(requestToken, function(token) {
