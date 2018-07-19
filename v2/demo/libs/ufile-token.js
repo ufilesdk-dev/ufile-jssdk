@@ -178,18 +178,15 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
             md5 = "";
         }
         if (that.signatureServer) {
-            token = getSignatureToken(that.tokenServerUrl, method, that.bucketName, encodeURIComponent(keyName), md5, contentType, "", putPolicy)
+            getSignatureToken(that.tokenServerUrl, method, that.bucketName, encodeURIComponent(keyName), md5, contentType, "", putPolicy)
         } else {
             token = signRequest(method, that.bucketName, encodeURIComponent(keyName), md5, contentType, "", putPolicy)
-        }
-
-
-        if (token) {
+          if (token) {
             success(token);
-        } else {
+          } else {
             error(token);
+          }
         }
-
     });
 }
 
