@@ -46,15 +46,16 @@ function UCloudUFile(bucketName, bucketUrl, tokenUrl) {
 
     // 重命名文件
     this.getFileName = function(file, fileRename) {
-        var fileName;
+/*        var fileName;
 
         if (fileRename && (fileRename !== "")) {
             fileName = fileRename + file.name.substring(file.name.lastIndexOf("."));
         } else {
             fileName = file.name;
         }
-
-        return fileName;
+*/
+        return fileRename;
+//        return fileName;
     }
 }
 
