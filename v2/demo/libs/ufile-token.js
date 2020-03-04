@@ -119,17 +119,16 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
         return "/" + bucket + "/" + decodeURIComponent(key);
     }
 
-    function sign(data, put_policy) {
+    function sign(data, put_policy_base64) {
+				
         data = CryptoJS.enc.Utf8.parse(data);
         var hash = CryptoJS.HmacSHA1(data, privateKey);
         var signdata = hash.toString(CryptoJS.enc.Base64);
 
         var signStr = "UCloud " + publicKey + ":" + signdata;
 
-        if (put_policy) {
-            var putPolicyStr = JSON.stringify(put_policy).replace(/\"/g, '\\"');
-            var signPolicyStr = Base64.encode(putPolicyStr);
-            signStr += ":" + signPolicyStr;
+        if (put_policy_base64) {
+            signStr += ":" + put_policy_base64;
         }
 
         return signStr;
@@ -144,7 +143,15 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
         data += date + "\n";
         data += canonicalizedResource(bucket, key);
 
-        return sign(data, put_policy);
+	//如果有回调，回调字符串参与计算签名
+	put_policy_base64 =""
+        if (put_policy) {
+            var putPolicyStr = put_policy; //JSON.stringify(put_policy).replace(/\"/g, '\\"');
+            put_policy_base64 = Base64.encode(putPolicyStr);
+            data += put_policy_base64;
+        }
+
+        return sign(data, put_policy_base64);
     }
 
     // 服务端签名计算
@@ -639,7 +646,7 @@ UCloudUFile.prototype.formUpload = function(options, success, error) {
     this.getUFileToken(requestToken, function(token) {
 
         var ajax = that.createAjax();
-        var url = that.getBucketUrl();
+        var url = that.getBucketUrl()+ encodeURIComponent(fileName);
         var reader = new FileReader();
 
         // FileReader API是异步的,我们需要把读取到的内容存储下来
