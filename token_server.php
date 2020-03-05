@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 
 // 公钥
 $UCLOUD_PUBLIC_KEY = '';
@@ -94,6 +94,8 @@ $content_type=$_GET['content_type'];
 $date=$_GET['date'];
 
 $put_policy=$_GET['put_policy'];	//需要是传已经base64编码后的, 也可以在这个代码里业务固定定制一个
+
+//header('Access-Control-Allow-Origin: *');	//跨域配置，需要根据实际需求设置，这里是允许所有网页请求访问
 
 $auth=new UCloud_Auth($UCLOUD_PUBLIC_KEY, $UCLOUD_PRIVATE_KEY);
 printf("%s", $auth->SignRequest($method, $bucket, $key, $content_md5, $content_type, $date, $put_policy));
