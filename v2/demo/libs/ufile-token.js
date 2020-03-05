@@ -14,7 +14,7 @@ function UCloudUFile(bucketName, bucketUrl, tokenPublicKey, tokenPrivateKey, tok
     // 令牌私钥。既可以在这里配置，也可以在实例化时传参配置。
     this.PRIVATE_KEY = tokenPrivateKey || '';
 
-    // 签名服务器地址
+    // 签名服务器地址,例如：http://106.75.32.100/token_server.php
     this.tokenServerUrl = tokenServerUrl || "";
 
     //令牌配置的前缀，无前缀填空字符串
@@ -143,8 +143,8 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
         data += date + "\n";
         data += canonicalizedResource(bucket, key);
 
-	//如果有回调，回调字符串参与计算签名
-	put_policy_base64 =""
+        //如果有回调，回调字符串参与计算签名
+        put_policy_base64 =""
         if (put_policy) {
             var putPolicyStr = put_policy; //JSON.stringify(put_policy).replace(/\"/g, '\\"');
             put_policy_base64 = Base64.encode(putPolicyStr);
@@ -163,7 +163,7 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
             "&content_md5=" + content_md5 +
             "&content_type=" + content_type +
             "&date=" + date +
-            "&put_policy=" + put_policy;
+            "&put_policy=" + Base64.encode(put_policy);
         ajax.open("GET", url, true);
 
         var onreadystatechange = function() {
@@ -190,7 +190,6 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
         } else {
             token = signRequest(method, that.bucketName, encodeURIComponent(keyName), md5, contentType, "", putPolicy)
         }
-
 
         if (token) {
             success(token);
@@ -644,7 +643,6 @@ UCloudUFile.prototype.formUpload = function(options, success, error) {
     };
 
     this.getUFileToken(requestToken, function(token) {
-
         var ajax = that.createAjax();
         var url = that.getBucketUrl()+ encodeURIComponent(fileName);
         var reader = new FileReader();
