@@ -1,6 +1,6 @@
-# UCloud UFile JavaScript SDK
+# UCloud US3 JavaScript SDK
 
-JavaScript SDK for [UCloud UFile（对象存储服务）]()
+JavaScript SDK for UCloud US3 (原名UFile 对象存储服务)
 
 ## 目录
 #### &sect; [说明](#intro)
@@ -20,7 +20,7 @@ JavaScript SDK for [UCloud UFile（对象存储服务）]()
 
 ## <a name="intro">&sect; 说明</a>
 ```
- Ufile JsSDK 主要用来从页面上传、下载、列表、删除文件。
+ US3 JsSDK 主要用来从页面上传、下载、列表、删除文件。
  SDK需要配合服务端 token_server.php 结合使用。先配置好环境，安装web服务器和解析php的服务。  
  部署SDK到服务器，配置好[安装](#install)中指定的4个参数，访问服务器地址，即可操作[示例](#examples)中的功能。
  V2的示例支持SDK内部签名计算、服务端签名计算和上传回调。V1不再维护，以V2为准。
