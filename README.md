@@ -27,7 +27,7 @@ JavaScript SDK for UCloud US3 (原名UFile 对象存储服务)
 
  上传文件大致使用流程：
  1、参考V2/demo
- 2、需要一个后端服务器，提供 token 生成的功能，类似 token_server.php; 在上传文件时，需要调用这个 php，实现 签名的生成
+ 2、需要一个后端服务器，提供 token 生成的功能，类似 token_server.php; 在上传文件时，需要调用这个 php，实现 签名的生成；参考：https://github.com/ufilesdk-dev/ufile-sdk-auth-server
  3、调用方法，具体参考 v2/demo 的代码。
  4、具体流程： 
       a、js 初始化一个 UCloudUfile 对象，传入bucket 的参数，和 token server .php 的地址
