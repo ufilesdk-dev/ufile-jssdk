@@ -60,15 +60,14 @@ function UCloudUFile(bucketName, bucketUrl, tokenPublicKey, tokenPrivateKey, tok
     // 重命名文件
     this.getFileName = function(file, fileRename) {
         var fileName;
-/*
+        
         if (fileRename && (fileRename !== "")) {
             fileName = fileRename + file.name.substring(file.name.lastIndexOf("."));
         } else {
             fileName = file.name;
         }
-*/
-        return fileRename;
-//        return fileName;
+
+        return fileName;
     }
 
     // 增加前缀
