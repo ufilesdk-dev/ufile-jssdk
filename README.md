@@ -35,6 +35,8 @@ JavaScript SDK for UCloud US3 (原名UFile 对象存储服务)
          里面需要用户填入公私钥信息， 需要修改代码，按自己业务需求，对请求做自己业务的鉴权校验；
          放在服务器的目的，主要是防止公私钥泄露，又能提供上传的签名服务。
       c、js 调用 uploadFile 接口完成上传文件（uploadFile  里面，会去请求 token_server.php, 然后把数据传到 ucloud 的服务器）
+
+注：如遇内网非 https 请求发送不出去，修改浏览器参数 block-insecure-private-network-requests 为 Disabled      
 ```
 ## <a name="install">&sect; 安装</a>
 
