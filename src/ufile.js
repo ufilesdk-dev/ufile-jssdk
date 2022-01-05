@@ -47,7 +47,7 @@ function UCloudUFile(bucketName, bucketUrl, tokenUrl) {
     // 重命名文件
     this.getFileName = function(file, fileRename) {
       var fileName = file.name
-      if (fileRename) {
+      if (fileRename && fileRename != "") {
         fileName = fileRename
       }
       return fileName
