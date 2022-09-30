@@ -23,18 +23,15 @@ JavaScript SDK for UCloud US3 (原名UFile 对象存储服务)
  US3 JsSDK 主要用来从页面上传、下载、列表、删除文件。
  SDK需要配合服务端 token_server.php 结合使用。先配置好环境，安装web服务器和解析php的服务。  
  部署SDK到服务器，配置好[安装](#install)中指定的4个参数，访问服务器地址，即可操作[示例](#examples)中的功能。
- V2的示例支持SDK内部签名计算、服务端签名计算和上传回调。V1不再维护，以V2为准。
+ 示例支持SDK内部签名计算、服务端签名计算和上传回调。
 
- 上传文件大致使用流程：
- 1、参考V2/demo
- 2、需要一个后端服务器，提供 token 生成的功能，类似 token_server.php; 在上传文件时，需要调用这个 php，实现 签名的生成；参考：https://github.com/ufilesdk-dev/ufile-sdk-auth-server
- 3、调用方法，具体参考 v2/demo 的代码。
- 4、具体流程： 
-      a、js 初始化一个 UCloudUfile 对象，传入bucket 的参数，和 token server .php 的地址
-      b、token_server.php ， 部署在用户自己的服务器上，主要是用来生成签名。
-         里面需要用户填入公私钥信息， 需要修改代码，按自己业务需求，对请求做自己业务的鉴权校验；
-         放在服务器的目的，主要是防止公私钥泄露，又能提供上传的签名服务。
-      c、js 调用 uploadFile 接口完成上传文件（uploadFile  里面，会去请求 token_server.php, 然后把数据传到 ucloud 的服务器）
+demo使用流程
+一、配置参数
+   demo配置分为两种情况，二选一即可（bucketName和bucketUrl为必填选项）。
+   1、手动配置公钥（tokenPublicKey）和私钥（tokenPrivateKey）。
+   2、需要一个后端服务器，提供 token 生成的功能，类似 token_server.php，并配置服务器地址（tokenServerUrl）。
+二、对象操作
+   通过浏览器打开demo/index.html地址，通过可视化操作可进行上传文件、下载文件、删除文件等操作。
 
 注：在较高版本 chrome 中，chrome 会默认阻止非 https 内网请求，现象为请求发送不出去，控制台出现 `net::ERR_FAILED` 错误，这种情况下需要修改浏览器参数 block-insecure-private-network-requests 为 Disabled，允许浏览器发送非 https 内网请求。
 ```
@@ -51,7 +48,7 @@ JavaScript SDK for UCloud US3 (原名UFile 对象存储服务)
 > 配置`bucketName`和`bucketUrl`。  
 > 既可以在实例化时传参设置，也可以在src目录的ufile.js中全局设置。  
 
-> 配置`UCLOUD_PUBLIC_KEY`和`UCLOUD_PRIVATE_KEY`。  
+> 配置`tokenPublicKey`和`tokenPrivateKey`。  
 > 在token_server.php中设置。   
 > 在[UCloud控制台](https://console.ucloud.cn/apikey)中可以查看您的API密钥的`public_key`和`private_key`。
 
