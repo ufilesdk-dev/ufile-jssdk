@@ -383,3 +383,6 @@ ufile.hitUpload(file, successCallBack, errorCallBack);
 ```
 ufile.batchUpload(fileList, successCallBack, errorCallBack, progressCallBack);
 ```
+
+## 许可证
+[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0.html)
