@@ -17,7 +17,6 @@ JavaScript SDK for UCloud US3 (原名UFile 对象存储服务)
 ##### &raquo; [普通上传（uploadFile）](#uploadFile)
 ##### &raquo; [表单上传（formUpload）](#formUpload)
 ##### &raquo; [分片上传（sliceUpload）](#sliceUpload)
-##### &raquo; [秒传文件（hitUpload）](#hitUpload)
 ##### &raquo; [批量上传（batchUpload）](#batchUpload)
 
 ## <a name="intro">&sect; 说明</a>
@@ -78,7 +77,6 @@ Origin 'http://localhost:8081' is therefore not allowed access.
 - 普通上传
 - 表单上传
 - 分片上传
-- 秒传文件
 - 批量上传
 
 参见SDK中examples目录中的示例。  
@@ -337,26 +335,6 @@ ufile.formUpload(data, successCallBack, errorCallBack);
 
 ```
 ufile.sliceUpload(data, successCallBack, errorCallBack, progressCallBack);
-```
-
-### <a name="hitUpload">&raquo; 秒传文件（hitUpload）</a>
-
-#### 接口功能
-
-> 说明：先判断待上传文件的hash值，如果UFile中可以查到此文件，则不必再传文件本身。
-
-#### 请求参数
-
-|名称|必选|类型|说明|
-|:----- |:-------|:-----|----- |
-|file |true |File。具体参见[MDN](https://developer.mozilla.org/zh-CN/docs/Web/API/File) |请求上传的文件。 |
-|success |false |function |请求成功的回调函数 |
-|error |false |function |请求失败的回调函数 |
-
-#### 调用示例
-
-```
-ufile.hitUpload(file, successCallBack, errorCallBack);
 ```
 
 ### <a name="batchUpload">&raquo; 批量上传（batchUpload）</a>
