@@ -1,4 +1,4 @@
-function UCloudUFile(bucketName, bucketUrl, tokenUrl) {
+function UCloudUFile(bucketName, bucketUrl, tokenPublicKey, tokenPrivateKey, tokenServerUrl, prefix) {
 
     // 存储空间名称。既可以在这里配置，也可以在实例化时传参配置。
     // 例如 bucketName = "example-name"
@@ -8,8 +8,21 @@ function UCloudUFile(bucketName, bucketUrl, tokenUrl) {
     // 例如 bucketUrl = "https://example-name.cn-bj.ufileos.com/"
     this.bucketUrl = bucketUrl || "";
 
-    // 计算token的地址
-    this.tokenUrl = tokenUrl || "token_server.php";
+    // 令牌公钥。既可以在这里配置，也可以在实例化时传参配置。
+    this.PUBLIC_KEY = tokenPublicKey || '';
+
+    // 令牌私钥。既可以在这里配置，也可以在实例化时传参配置。
+    this.PRIVATE_KEY = tokenPrivateKey || '';
+
+    // 签名服务器地址,例如：http://106.75.32.100/token_server.php
+    this.tokenServerUrl = tokenServerUrl || "";
+
+    //令牌配置的前缀，无前缀填空字符串
+    //例如 PREFIX = "example-prefix"
+    this.PREFIX = prefix || '';
+
+    // 是否服务端签名
+    this.signatureServer = !!this.tokenServerUrl || false;
 
     this.createAjax = function(argument) {
         var xmlhttp = {};
@@ -46,13 +59,12 @@ function UCloudUFile(bucketName, bucketUrl, tokenUrl) {
 
     // 重命名文件
     this.getFileName = function(file, fileRename) {
-      var fileName = file.name
-      if (fileRename && fileRename != "") {
-        fileName = fileRename
-      }
-      return fileName
-/*        var fileName;
-
+        var fileName = file.name
+        if (fileRename && fileRename != "") {
+          fileName = fileRename
+        }
+        return fileName
+/*
         if (fileRename && (fileRename !== "")) {
             fileName = fileRename + file.name.substring(file.name.lastIndexOf("."));
         } else {
@@ -60,7 +72,12 @@ function UCloudUFile(bucketName, bucketUrl, tokenUrl) {
         }
 */
         // return fileRename;
-//        return fileName;
+      //  return fileName;
+    }
+
+    // 增加前缀
+    this.addPrefix = function(filename) {
+        return this.PREFIX? this.PREFIX + '/' + filename: filename;
     }
 }
 
@@ -81,32 +98,76 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
 
     var keyName;
     var contentType = options.contentType || file.type || "";
+    var putPolicy = options.putPolicy || "";
 
     if (fileName) {
         keyName = fileName;
     } else if (file.FileName) {
         keyName = file.FileName;
+    } else if (file.name){
+        keyName = this.addPrefix(file.name);
     } else {
-        keyName = file.name || "";
+        keyName = "";
     }
 
     var that = this;
     var expired = this.getExpired();
-    var tokenUrl = this.tokenUrl;
 
-    this.getContentMd5(file, function(md5) {
 
-        if (md5Required === false) {
-            md5 = "";
+    var publicKey = this.PUBLIC_KEY;
+    var privateKey = this.PRIVATE_KEY;
+
+    var token = ''
+
+    function canonicalizedResource(bucket, key) {
+        return "/" + bucket + "/" + decodeURIComponent(key);
+    }
+
+    function sign(data, put_policy_base64) {
+				
+        data = CryptoJS.enc.Utf8.parse(data);
+        var hash = CryptoJS.HmacSHA1(data, privateKey);
+        var signdata = hash.toString(CryptoJS.enc.Base64);
+
+        var signStr = "UCloud " + publicKey + ":" + signdata;
+
+        if (put_policy_base64) {
+            signStr += ":" + put_policy_base64;
         }
 
+        return signStr;
+    }
+
+    // SDK内部签名计算
+    function signRequest(method, bucket, key, content_md5, content_type, date, put_policy) {
+        var data = '';
+        data += method.toUpperCase() + "\n";
+        data += content_md5 + "\n";
+        data += content_type + "\n";
+        data += date + "\n";
+        data += canonicalizedResource(bucket, key);
+
+        //如果有回调，回调字符串参与计算签名
+        put_policy_base64 =""
+        if (put_policy) {
+            var putPolicyStr = put_policy; //JSON.stringify(put_policy).replace(/\"/g, '\\"');
+            put_policy_base64 = Base64.encode(putPolicyStr);
+            data += put_policy_base64;
+        }
+
+        return sign(data, put_policy_base64);
+    }
+
+    // 服务端签名计算
+    function getSignatureToken(tokenServerUrl, method, bucket, key, content_md5, content_type, date, put_policy) {
         var ajax = that.createAjax();
-        var url = tokenUrl + "?method=" + method +
-            "&bucket=" + that.bucketName +
-            "&key=" + encodeURIComponent(keyName) +
-            "&content_md5=" + md5 +
-            "&content_type=" + contentType +
-            "&date=" + "";
+        var url = tokenServerUrl + "?method=" + method +
+            "&bucket=" + bucket +
+            "&key=" + key +
+            "&content_md5=" + content_md5 +
+            "&content_type=" + content_type +
+            "&date=" + date +
+            "&put_policy=" + Base64.encode(put_policy);
         ajax.open("GET", url, true);
 
         var onreadystatechange = function() {
@@ -121,6 +182,25 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
 
         ajax.onreadystatechange = onreadystatechange;
         ajax.send();
+    }
+
+    this.getContentMd5(file, function(md5) {
+
+        if (md5Required === false) {
+            md5 = "";
+        }
+        if (that.signatureServer) {
+            token = getSignatureToken(that.tokenServerUrl, method, that.bucketName, encodeURIComponent(keyName), md5, contentType, "", putPolicy)
+        } else {
+            token = signRequest(method, that.bucketName, encodeURIComponent(keyName), md5, contentType, "", putPolicy)
+        }
+
+        if (token) {
+            success(token);
+        } else {
+            error(token);
+        }
+
     });
 }
 
@@ -167,10 +247,14 @@ UCloudUFile.prototype.getContentMd5 = function(file, success) {
 }
 
 // 获取文件列表
-UCloudUFile.prototype.getFileList = function(success, error) {
+UCloudUFile.prototype.getFileList = function(options, success, error) {
 
     var that = this;
     var method = "GET";
+    var prefix = options.prefix || that.PREFIX;
+    var marker = options.marker || "";
+    var limit = options.limit || 20;
+
     var requestToken = {
         method: method
     };
@@ -179,9 +263,9 @@ UCloudUFile.prototype.getFileList = function(success, error) {
 
         var ajax = that.createAjax();
         var url = that.getBucketUrl() + "?list" +
-            "&prefix=" + "" +
-            "&marker=" + "" +
-            "&limit=" + 20;
+            "&prefix=" + prefix +
+            "&marker=" + marker +
+            "&limit=" + limit;
         ajax.open(method, url, true);
         ajax.setRequestHeader("Authorization", token);
 
@@ -250,12 +334,14 @@ UCloudUFile.prototype.uploadFile = function(options, success, error, progress) {
     var method = "PUT";
     var file = options.file || {};
     var fileRename = options.fileRename;
-    var fileName = this.getFileName(file, fileRename);
+    var fileName = this.addPrefix(this.getFileName(file, fileRename));
+    var putPolicy = options.putPolicy;
 
     var requestToken = {
         method: method,
         file: file,
-        fileName: fileName
+        fileName: fileName,
+        putPolicy: putPolicy
     };
 
     this.getUFileToken(requestToken, function(token) {
@@ -343,7 +429,7 @@ UCloudUFile.prototype.sliceUpload = function(options, success, error, progress) 
     var that = this;
     var file = options.file || {};
     var fileRename = options.fileRename;
-    var fileName = this.getFileName(file, fileRename);
+    var fileName = this.addPrefix(this.getFileName(file, fileRename));
 
     var fileReader = new FileReader();
     var chunks = Math.ceil(file.size / this.sliceSize);
@@ -550,18 +636,19 @@ UCloudUFile.prototype.formUpload = function(options, success, error) {
     var method = "POST";
     var file = options.file || {};
     var fileRename = options.fileRename;
-    var fileName = this.getFileName(file, fileRename);
+    var fileName = this.addPrefix(this.getFileName(file, fileRename));
+    var putPolicy = options.putPolicy
 
     var requestToken = {
         method: method,
         file: file,
-        fileName: fileName
+        fileName: fileName,
+        putPolicy: putPolicy
     };
 
     this.getUFileToken(requestToken, function(token) {
-
         var ajax = that.createAjax();
-        var url = that.getBucketUrl();
+        var url = that.getBucketUrl()+ encodeURIComponent(fileName);
         var reader = new FileReader();
 
         // FileReader API是异步的,我们需要把读取到的内容存储下来
@@ -642,7 +729,7 @@ UCloudUFile.prototype.hitUpload = function(file, success, error) {
     var that = this;
     var method = "POST";
 
-    this.getFileDetail(file.name, function(fileDetail) {
+    this.getFileDetail(this.addPrefix(file.name), function(fileDetail) {
         var requestToken = {
             method: method,
             file: file,
@@ -654,7 +741,7 @@ UCloudUFile.prototype.hitUpload = function(file, success, error) {
             var ajax = that.createAjax();
             var url = that.getBucketUrl() +
                 "uploadhit?Hash=" + fileDetail.eTag +
-                "&FileName=" + encodeURIComponent(file.name) +
+                "&FileName=" + encodeURIComponent(that.addPrefix(file.name)) +
                 "&FileSize=" + file.size;
             ajax.open(method, url, true);
             ajax.setRequestHeader("Authorization", token);

@@ -1,5 +1,23 @@
 $(document).ready(function() {
 
+    /* 
+        公私钥 
+        1、测试环境下，只需配置tokenPublicKey和tokenPrivateKey，无需设置tokenServerUrl
+        2、正式环境通过配置tokenServerUrl，获取公私钥
+    */
+
+    // 令牌公钥。既可以在这里配置，也可以在SDK中全局配置。
+    // var tokenPublicKey = 'TOKEN_48b6cXXXXXXc-42b5-9853-4d25cc22927b';
+    var tokenPublicKey = '';
+    // 令牌私钥。既可以在这里配置，也可以在SDK中全局配置。
+    // var tokenPrivateKey = 'eda2585XXXXXX-40a7-be17-adf7a6bc5d59';
+    var tokenPrivateKey = '';
+
+    // 计算token的地址。既可以在这里配置，也可以在SDK中全局配置。
+    // 例如 tokenServerUrl = "http://localhost:8080/token_server.php";
+    var tokenServerUrl = "";
+
+
     // 存储空间名称。既可以在这里配置，也可以在SDK中全局配置。
     // 例如 var bucketName = "example-name";
     var bucketName = "";
@@ -8,12 +26,13 @@ $(document).ready(function() {
     // 例如 var bucketUrl = "https://example-name.cn-bj.ufileos.com/";
     var bucketUrl = "";
 
-    // 计算token的地址。既可以在这里配置，也可以在SDK中全局配置。
-    // 例如 var tokenUrl = "token_server.php";
-    var tokenUrl = "";
+    
+
+    //令牌配置的前缀，无前缀填空字符串
+    var prefix = '';
 
     // 实例化UCloudUFile
-    var ufile =  new UCloudUFile(bucketName, bucketUrl, tokenUrl);
+    var ufile =  new UCloudUFile(bucketName, bucketUrl, tokenPublicKey, tokenPrivateKey, tokenServerUrl, prefix);
 
     // 批量上传队列
     var batchUploadList = [];
@@ -22,6 +41,21 @@ $(document).ready(function() {
         $("#result").html("errorCallBack: " + JSON.stringify(res));
         console.error("errorCallBack", res)
     };
+
+    // 显示当前配置信息
+    $("#configInfo").append('<p>// 填写tokenPublicKey和tokenPrivateKey可实现SDK内部签名计算，填写tokenServerUrl可实现服务端签名计算</p>')
+    $("#configInfo").append('<p>// SDK内部签名计算可用于调试，服务端签名计算用于开发环境</p>')
+   if(tokenServerUrl) {
+        $("#configInfo").append('<p>【当前demo实现服务端签名计算】</p>')
+        $("#configInfo").append('<p>tokenServerUrl：' + tokenServerUrl + '</p>')
+    } else if(tokenPublicKey && tokenPrivateKey) {
+        $("#configInfo").append('<p>【当前demo实现SDK内部签名计算】</p>')
+        $("#configInfo").append('<p>tokenPublicKey：' + tokenPublicKey + '</p>')
+        $("#configInfo").append('<p>tokenPrivateKey：' + tokenPrivateKey + '</p>')
+    }
+    $("#configInfo").append('<p>bucketName：' + bucketName + '</p>')
+    $("#configInfo").append('<p>bucketUrl：' + bucketUrl + '</p>')
+    $("#configInfo").append('<p>prefix：' + prefix + '</p>')
 
     // 切换Tab清空返回值
     $(".nav li").on("click", function() {
@@ -33,6 +67,15 @@ $(document).ready(function() {
 
         $('.file-list').removeClass("hide");
         $('#batchDelete').removeClass("hide");
+        var prefix = $(".prefix-fileList").val();
+        var marker = $(".marker-fileList").val();
+        var limit = $(".limit-fileList").val();
+
+        var data = {
+            prefix: prefix,
+            marker: marker,
+            limit: limit
+        };
 
         var successCallBack = function(res) {
 
@@ -56,7 +99,7 @@ $(document).ready(function() {
             });
         };
 
-        ufile.getFileList(successCallBack, errorCallBack);
+        ufile.getFileList(data, successCallBack, errorCallBack);
     });
 
     // 查看文件信息
@@ -127,6 +170,7 @@ $(document).ready(function() {
         if (activeTab  == "#tab2") {
             var fileRename = $(".rename-uploadFile").val();
             var file = document.getElementById("uploader").files[0];
+
             var data = {
                 file: file,
                 fileRename: fileRename
@@ -199,6 +243,26 @@ $(document).ready(function() {
             };
 
             ufile.hitUpload(file, successCallBack, errorCallBack);
+
+        // 上传回调
+        }  else if (activeTab  == "#tab7") {
+            var fileRename = $(".rename-putPolicy").val();
+            var putPolicy = $(".putPolicy-json").val();
+            var file = document.getElementById("uploader").files[0];
+
+            var data = {
+                file: file,
+                fileRename: fileRename,
+                putPolicy: putPolicy
+            };
+
+            var successCallBack = function(res) {
+                $("#result").html("上传成功");
+                $("#result").append(JSON.stringify(res));
+            };
+
+            ufile.formUpload(data, successCallBack, errorCallBack);
+
         }
 
         // 重新增加uploader DOM
@@ -331,6 +395,11 @@ $(document).ready(function() {
 
         ufile.batchUpload(batchUploadList, successCallBack, errorCallBack, progressCallBack);
 
+    });
+
+    // 上传回调
+    $("#putPolicy").on("click", function() {
+        $("#uploader").trigger("click");
     });
 
 });
