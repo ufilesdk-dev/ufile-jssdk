@@ -94,6 +94,32 @@ $(document).ready(function() {
         ufile.getFileList(data, successCallBack, errorCallBack);
     });
 
+    $("#getPartList").on('click', function() {
+        $('.part-list').removeClass("hide");
+
+        let uploadId = $("#uploadId").val()
+
+        var successCallBack = function(res) {
+            $(".parts-tbody").empty();
+            $("#result").html(JSON.stringify(res));
+
+            res.Parts.map(function(item) {
+                console.log(item)
+                // var file = JSON.stringify(item);
+
+                $(".parts-tbody").append('<tr>'+
+                    '<td>'+item.PartNum+'</td>'+
+                    '<td>'+item.Size+'</td>'+
+                    '<td>'+item.Etag+'</td>'+
+                    '<td>'+item.LastModified+'</td>'+
+                    '</td>'+
+                '</tr>');
+            });
+        };
+
+        ufile.listParts(successCallBack, errorCallBack, uploadId)
+    });
+
     // 查看文件信息
     $(document).on("click", ".getFileDetail", function(e) {
 

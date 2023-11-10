@@ -124,7 +124,7 @@ UCloudUFile.prototype.getUFileToken = function(options, success, error) {
     }
 
     function sign(data, put_policy_base64) {
-				
+
         data = CryptoJS.enc.Utf8.parse(data);
         var hash = CryptoJS.HmacSHA1(data, privateKey);
         var signdata = hash.toString(CryptoJS.enc.Base64);
@@ -627,6 +627,34 @@ UCloudUFile.prototype.multipartUploaded = function(success, error, progress, key
         ajax.upload.onprogress = onprogress;
         ajax.send(eTags);
 
+    }, error);
+}
+
+UCloudUFile.prototype.listParts = function(success, error, uploadId) {
+    let that = this;
+    let method = "GET";
+    let requestToken = {
+        method: method,
+    };
+
+    this.getUFileToken(requestToken, function(token) {
+        let ajax = that.createAjax();
+        let url = that.getBucketUrl() + "?muploadpart&uploadId=" + uploadId;
+        ajax.open(method, url, true);
+        ajax.setRequestHeader("Authorization", token);
+
+        let onreadystatechange = function() {
+            if (ajax.readyState === 4) {
+                if (ajax.status === 200) {
+                    success(JSON.parse(ajax.response));
+                } else {
+                    error(ajax.responseText);
+                }
+            }
+        };
+
+        ajax.onreadystatechange = onreadystatechange;
+        ajax.send();
     }, error);
 }
 

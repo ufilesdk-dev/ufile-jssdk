@@ -59,6 +59,11 @@
                             上传回调
                         </a>
                     </li>
+                    <li role="presentation">
+                        <a href="#tab8" data-toggle="tab" aria-expanded="false">
+                            分片列表
+                        </a>
+                    </li>
                 </ul>
             </div>
 
@@ -156,6 +161,27 @@
                     <button id="putPolicy" class="btn btn-default">
                         上传回调
                     </button>
+                </div>
+                <div id="tab8" class="tab-pane fade">
+                    <div class="col-sm-2">
+                        <input id="uploadId" type="text" name="" class="prefix-fileList form-control" placeholder="UploadId">
+                    </div>
+                    <button id="getPartList" class="btn btn-default">获取分片列表</button>
+                    <hr />
+                    <div class="part-list hide" data-example-id="hoverable-table">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>分片号</th>
+                                    <th>分片大小(Byte)</th>
+                                    <th>ETag</th>
+                                    <th>上传时间</th>
+                                </tr>
+                            </thead>
+                            <tbody class="parts-tbody">
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
